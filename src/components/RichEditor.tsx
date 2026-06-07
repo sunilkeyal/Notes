@@ -103,7 +103,7 @@ export default function RichEditor({ note, onUpdate, onUpdateName }: RichEditorP
           }
         }}
       >
-        <div className="max-w-4xl mx-auto px-8 py-6 sm:px-12 sm:py-8">
+        <div className="max-w-4xl px-8 py-6 sm:px-12 sm:py-8">
           <input
             type="text"
             value={note.title}
