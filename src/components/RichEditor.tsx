@@ -181,14 +181,14 @@ const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(function RichEd
             }
           }}
         >
-          <Box maxW="4xl" mx="auto" px={{ base: 4, sm: 6, md: 10 }} py={{ base: 4, sm: 6, md: 8 }}>
+          <Box maxW="4xl" px={{ base: 4, sm: 6, md: 10 }} py={{ base: 4, sm: 6, md: 8 }}>
             <Input
               variant="subtle"
-              fontSize="xl"
-              fontWeight="bold"
+              fontSize="2xl"
+              fontWeight="semibold"
               letterSpacing="tight"
               w="full"
-              mb={0.5}
+              mb={0}
               type="text"
               value={note.title}
               onChange={(e) => onUpdateName(note.id, e.target.value)}
@@ -197,13 +197,16 @@ const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(function RichEd
                 color: "fg",
                 bg: "transparent",
                 border: "none",
+                borderBottom: "1px solid",
+                borderBottomColor: "border.subtle",
                 borderRadius: 0,
                 px: 0,
-                _focus: { borderColor: "transparent", boxShadow: "none" },
+                pb: 0.5,
+                _focus: { borderColor: "transparent", boxShadow: "none", borderBottomColor: "border" },
                 _placeholder: { color: "fg.muted" },
               }}
             />
-            <Text fontSize="xs" css={{ color: "fg.muted" }} mb={5}>
+            <Text fontSize="xs" css={{ color: "fg.muted" }} mt={-1} mb={5}>
               {note.lastUpdated ? formatDate(note.lastUpdated) : ""}
             </Text>
             <Box minH="full">
