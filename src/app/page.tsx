@@ -73,6 +73,15 @@ function findNote(notes: Note[], id: string): Note | null {
   return null;
 }
 
+function findFirstNote(nodes: Note[]): Note | null {
+  for (const n of nodes) {
+    if (n.type === "note") return n;
+    const found = findFirstNote(n.children);
+    if (found) return found;
+  }
+  return null;
+}
+
 function findParentFolderId(notes: Note[], id: string): string | null {
   for (const note of notes) {
     if (note.children.some((c) => c.id === id)) return note.id;
@@ -104,15 +113,6 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isLoaded = useRef(false);
-
-function findFirstNote(nodes: Note[]): Note | null {
-  for (const n of nodes) {
-    if (n.type === "note") return n;
-    const found = findFirstNote(n.children);
-    if (found) return found;
-  }
-  return null;
-}
 
   useEffect(() => {
     fetch("/api/notes")
@@ -162,10 +162,6 @@ function findFirstNote(nodes: Note[]): Note | null {
   }, []);
 
   const handleUpdateName = useCallback((id: string, title: string) => {
-    setNotes((prev) => updateNoteName(prev, id, title));
-  }, []);
-
-  const handleRename = useCallback((id: string, title: string) => {
     setNotes((prev) => updateNoteName(prev, id, title));
   }, []);
 
@@ -233,7 +229,7 @@ function findFirstNote(nodes: Note[]): Note | null {
           onSelect={handleSelect}
           onToggle={handleToggle}
           onMoveNote={handleMoveNote}
-          onRename={handleRename}
+          onRename={handleUpdateName}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onNewNote={handleNewNote}

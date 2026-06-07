@@ -61,15 +61,6 @@ const HEADING_SIZES = [
   { label: "H3", value: 3 },
 ];
 
-const FONT_SIZES = [
-  { label: "XS", value: "0.625rem" },
-  { label: "S", value: "0.75rem" },
-  { label: "Normal", value: "0.875rem" },
-  { label: "M", value: "1rem" },
-  { label: "L", value: "1.125rem" },
-  { label: "XL", value: "1.25rem" },
-];
-
 const FONT_FAMILIES = [
   { label: "Default", value: "var(--font-geist-sans), sans-serif" },
   { label: "Serif", value: "Georgia, Cambria, 'Times New Roman', Times, serif" },

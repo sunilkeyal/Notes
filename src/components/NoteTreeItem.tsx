@@ -66,10 +66,9 @@ export default function NoteTreeItem({
 
   useEffect(() => {
     if (isEditing) {
-      setEditValue(note.title);
       requestAnimationFrame(() => inputRef.current?.select());
     }
-  }, [isEditing, note.title]);
+  }, [isEditing]);
 
   function commitRename() {
     const trimmed = editValue.trim();
@@ -141,6 +140,7 @@ export default function NoteTreeItem({
         onClick={() => onSelect(note.id)}
         onDoubleClick={(e) => {
           e.preventDefault();
+          setEditValue(note.title);
           setIsEditing(true);
         }}
         className={`w-full flex items-center gap-1 px-2 py-1 text-left text-sm transition-colors cursor-pointer ${
