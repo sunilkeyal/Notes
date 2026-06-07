@@ -11,6 +11,7 @@ interface NoteTreeViewProps {
   onToggle: (id: string) => void;
   onMoveNote: (noteId: string, targetFolderId: string | null) => void;
   onRename: (id: string, title: string) => void;
+  onDelete: (id: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onNewNote: () => void;
@@ -36,6 +37,7 @@ export default function NoteTreeView({
   onToggle,
   onMoveNote,
   onRename,
+  onDelete,
   searchQuery,
   onSearchChange,
   onNewNote,
@@ -174,6 +176,7 @@ export default function NoteTreeView({
                 onToggle={onToggle}
                 onMoveNote={onMoveNote}
                 onRename={onRename}
+                onDelete={onDelete}
                 searchQuery={searchQuery}
                 depth={0}
               />

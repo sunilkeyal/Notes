@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { type Note } from "@/types";
+import ConfirmDialog from "./ConfirmDialog";
 
 interface NoteTreeItemProps {
   note: Note;
@@ -10,6 +11,7 @@ interface NoteTreeItemProps {
   onToggle: (id: string) => void;
   onMoveNote: (noteId: string, targetFolderId: string | null) => void;
   onRename: (id: string, title: string) => void;
+  onDelete: (id: string) => void;
   searchQuery: string;
   depth: number;
 }
@@ -55,12 +57,15 @@ export default function NoteTreeItem({
   onToggle,
   onMoveNote,
   onRename,
+  onDelete,
   searchQuery,
   depth,
 }: NoteTreeItemProps) {
   const [dragOver, setDragOver] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(note.title);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const liRef = useRef<HTMLLIElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -81,6 +86,16 @@ export default function NoteTreeItem({
   const isSelected = selectedId === note.id;
   const isFolder = note.type === "folder";
   const isNote = note.type === "note";
+  function countDescendants(n: Note): number {
+    let count = 0;
+    for (const child of n.children) {
+      if (child.type === "note") count++;
+      count += countDescendants(child);
+    }
+    return count;
+  }
+
+  const childCount = isFolder ? countDescendants(note) : null;
   const hasMatchingChild = isFolder && containsMatchingChild(note, searchQuery);
 
   const isExpanded = searchQuery
@@ -137,6 +152,8 @@ export default function NoteTreeItem({
         type="button"
         draggable={isNote}
         onDragStart={isNote ? handleDragStart : undefined}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onClick={() => onSelect(note.id)}
         onDoubleClick={(e) => {
           e.preventDefault();
@@ -214,6 +231,25 @@ export default function NoteTreeItem({
             {searchQuery ? highlightMatch(note.title, searchQuery) : note.title}
           </span>
         )}
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirmDelete(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") { e.stopPropagation(); setConfirmDelete(true); }
+          }}
+          className={`shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--sidebar-hover)] text-[var(--text-muted)] hover:text-red-500 transition-all ${
+            isHovered ? "" : "invisible pointer-events-none"
+          }`}
+          title={`Delete "${note.title}"`}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+          </svg>
+        </span>
       </button>
 
       {isFolder && isExpanded && (
@@ -227,12 +263,30 @@ export default function NoteTreeItem({
                   onToggle={onToggle}
                   onMoveNote={onMoveNote}
                   onRename={onRename}
+                  onDelete={onDelete}
                   searchQuery={searchQuery}
-                  depth={1}
+                  depth={depth + 1}
                 />
           ))}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title={isFolder ? "Delete folder" : "Delete note"}
+        message={
+          isFolder && childCount && childCount > 0
+            ? `Delete "${note.title}" and all its contents? This folder contains ${childCount} note${childCount === 1 ? "" : "s"}. This action cannot be undone.`
+            : isFolder
+              ? `Delete "${note.title}"? This empty folder will be permanently removed.`
+              : `Delete "${note.title}"? This action cannot be undone.`
+        }
+        onConfirm={() => {
+          setConfirmDelete(false);
+          onDelete(note.id);
+        }}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </li>
   );
 }

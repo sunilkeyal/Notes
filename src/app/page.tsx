@@ -194,6 +194,17 @@ export default function Home() {
     setSelectedId(id);
   }, [notes, selectedId]);
 
+  const handleDelete = useCallback((id: string) => {
+    setNotes((prev) => {
+      const { nodes, removed } = removeNoteById(prev, id);
+      if (removed && removed.id === selectedId) {
+        const next = findFirstNote(nodes);
+        setSelectedId(next?.id ?? "");
+      }
+      return nodes;
+    });
+  }, [selectedId]);
+
   const handleNewFolder = useCallback(() => {
     const id = createNoteId();
     const now = new Date().toISOString();
@@ -230,6 +241,7 @@ export default function Home() {
           onToggle={handleToggle}
           onMoveNote={handleMoveNote}
           onRename={handleUpdateName}
+          onDelete={handleDelete}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onNewNote={handleNewNote}
