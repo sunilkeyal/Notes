@@ -25,7 +25,7 @@ export default function ConfirmDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] backdrop-blur-sm"
       onClick={onCancel}
     >
       <div
@@ -49,7 +49,7 @@ export default function ConfirmDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className="px-3 py-1.5 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+            className="px-3 py-1.5 text-sm rounded-lg bg-[var(--danger)] text-white hover:bg-[var(--danger-hover)] transition-colors"
           >
             {confirmLabel}
           </button>

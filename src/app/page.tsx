@@ -246,66 +246,64 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex h-full bg-[var(--background)]">
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+    <div className="flex flex-col h-full">
+      {/* Global header */}
+      <header className="flex items-center gap-3 h-11 px-4 border-b border-[var(--sidebar-border)] bg-[var(--header-bg)] shrink-0">
+        <button
+          type="button"
+          onClick={() => setSidebarOpen(true)}
+          className="md:hidden flex items-center justify-center w-8 h-8 rounded-md text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)]"
+          aria-label="Open sidebar"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" x2="21" y1="6" y2="6" />
+            <line x1="3" x2="21" y1="12" y2="12" />
+            <line x1="3" x2="21" y1="18" y2="18" />
+          </svg>
+        </button>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-muted)] shrink-0">
+          <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h9.8c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V5.5L15.5 2z" />
+          <polyline points="15.5 2 15.5 5.5 19 5.5" />
+          <line x1="9" x2="14" y1="10" y2="10" />
+          <line x1="9" x2="16" y1="14" y2="14" />
+          <line x1="9" x2="12" y1="18" y2="18" />
+        </svg>
+        <h1 className="text-sm font-semibold text-[var(--foreground)]">Notes</h1>
+      </header>
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed md:relative z-40 md:z-auto inset-y-0 left-0 w-[280px] shrink-0 transition-transform duration-300 ease-out md:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <NoteTreeView
-          notes={notes}
-          selectedId={selectedId}
-          onSelect={handleSelect}
-          onToggle={handleToggle}
-          onMoveNote={handleMoveNote}
-          onRename={handleUpdateName}
-          onDelete={handleDelete}
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchChange}
-          onSearchNav={handleSearchNav}
-          onNewNote={handleNewNote}
-          onNewFolder={handleNewFolder}
-        />
-      </aside>
+      <div className="flex flex-1 min-h-0 bg-[var(--background)]">
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-30 bg-[var(--overlay)] backdrop-blur-sm md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
 
-      {/* Main content */}
-      <main className="flex-1 flex flex-col min-w-0">
-        {/* Mobile header */}
-        <div className="flex items-center gap-3 h-11 px-4 border-b border-[var(--sidebar-border)] bg-[var(--toolbar-bg)] md:hidden shrink-0">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(true)}
-            className="flex items-center justify-center w-8 h-8 rounded-md text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)]"
-            aria-label="Open sidebar"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="3" x2="21" y1="6" y2="6" />
-              <line x1="3" x2="21" y1="12" y2="12" />
-              <line x1="3" x2="21" y1="18" y2="18" />
-            </svg>
-          </button>
-          <h1 className="text-sm font-semibold truncate text-[var(--foreground)]">
-            {selectedNote?.title ?? "Notes"}
-          </h1>
-        </div>
+        {/* Sidebar */}
+        <aside
+          className={`fixed md:relative z-40 md:z-auto inset-y-0 left-0 w-[280px] shrink-0 transition-transform duration-300 ease-out md:translate-x-0 ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <NoteTreeView
+            notes={notes}
+            selectedId={selectedId}
+            onSelect={handleSelect}
+            onToggle={handleToggle}
+            onMoveNote={handleMoveNote}
+            onRename={handleUpdateName}
+            onDelete={handleDelete}
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            onSearchNav={handleSearchNav}
+            onNewNote={handleNewNote}
+            onNewFolder={handleNewFolder}
+          />
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 flex flex-col min-w-0">
 
         {selectedNote && selectedNote.type === "note" ? (
           <RichEditor
@@ -347,6 +345,7 @@ export default function Home() {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }

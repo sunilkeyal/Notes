@@ -33,7 +33,7 @@ function highlightMatch(text: string, query: string) {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-amber-200/60 dark:bg-amber-300/20 text-inherit rounded-sm px-0.5">
+      <mark className="bg-[var(--highlight)] text-inherit rounded-sm px-0.5">
         {text.slice(idx, idx + q.length)}
       </mark>
       {text.slice(idx + q.length)}
@@ -276,7 +276,7 @@ export default function NoteTreeItem({
           onKeyDown={(e) => {
             if (e.key === "Enter") { e.stopPropagation(); setConfirmDelete(true); }
           }}
-          className={`shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--sidebar-hover)] text-[var(--text-muted)] hover:text-red-500 transition-all ${
+          className={`shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--sidebar-hover)] text-[var(--text-muted)] hover:text-[var(--danger)] transition-all ${
             isHovered ? "" : "invisible pointer-events-none"
           }`}
           title={`Delete "${note.title}"`}
