@@ -61,9 +61,25 @@ export default function NoteTreeView({
   onNewFolder,
 }: NoteTreeViewProps) {
   const [dragOver, setDragOver] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const filteredNotes = filterTree(notes, searchQuery);
+
+  useEffect(() => {
+    if (searchOpen) {
+      searchInputRef.current?.focus();
+    }
+  }, [searchOpen]);
+
+  const openSearch = () => {
+    setSearchOpen(true);
+  };
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    onSearchChange("");
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     if (e.dataTransfer.types.includes("text/plain")) {
@@ -93,90 +109,114 @@ export default function NoteTreeView({
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
-      onSearchChange("");
-      searchInputRef.current?.focus();
+      closeSearch();
     }
   };
 
   return (
     <div className="flex flex-col h-full bg-[var(--sidebar-bg)]">
-      <div className="flex items-center justify-between px-4 h-11 shrink-0">
-        <h1 className="text-sm font-semibold text-[var(--foreground)]">
-          Notes
-        </h1>
-        <div className="flex items-center gap-0.5">
-          <button
-            type="button"
-            onClick={onNewNote}
-            className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
-            title="New note"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" x2="12" y1="5" y2="19" /><line x1="5" x2="19" y1="12" y2="12" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={onNewFolder}
-            className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
-            title="New folder"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
-              <line x1="12" x2="12" y1="10" y2="16" /><line x1="9" x2="15" y1="13" y2="13" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div className="px-3 pb-2 shrink-0">
-        <div className="relative flex items-center gap-1">
-          <svg
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <path d="m21 21-4.3-4.3" />
-          </svg>
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            className="flex-1 h-8 pl-8 pr-1 text-sm rounded border-0 bg-[var(--sidebar-hover)] text-[var(--foreground)] placeholder:text-[var(--text-muted)] outline-none transition-colors focus:bg-[var(--sidebar-active)]"
-          />
-          {searchQuery && (
-            <div className="flex items-center gap-0.5 shrink-0">
+      <div className="flex items-center gap-2 px-2 h-11 shrink-0">
+        {searchOpen ? (
+          <div className="flex items-center gap-1.5 w-full">
+            <button
+              type="button"
+              onClick={closeSearch}
+              className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors shrink-0"
+              title="Close search"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5" /><polyline points="12 19 5 12 12 5" />
+              </svg>
+            </button>
+            <div className="relative flex-1 flex items-center">
+              <svg
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search notes..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                className="flex-1 h-8 pl-8 pr-1 text-sm rounded border-0 bg-[var(--sidebar-hover)] text-[var(--foreground)] placeholder:text-[var(--text-muted)] outline-none transition-colors focus:bg-[var(--sidebar-active)]"
+              />
+              {searchQuery && (
+                <div className="flex items-center gap-0.5 shrink-0 ml-1">
+                  <button
+                    type="button"
+                    onClick={() => onSearchNav("up")}
+                    className="flex items-center justify-center w-6 h-6 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
+                    title="Previous match"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="18 15 12 9 6 15" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSearchNav("down")}
+                    className="flex items-center justify-center w-6 h-6 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
+                    title="Next match"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+            <h1 className="text-sm font-semibold text-[var(--foreground)] flex-1 px-2">
+              Notes
+            </h1>
+            <div className="flex items-center gap-0.5">
               <button
                 type="button"
-                onClick={() => onSearchNav("up")}
-                className="flex items-center justify-center w-6 h-6 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
-                title="Previous match"
+                onClick={openSearch}
+                className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
+                title="Search"
               >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="18 15 12 9 6 15" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
                 </svg>
               </button>
               <button
                 type="button"
-                onClick={() => onSearchNav("down")}
-                className="flex items-center justify-center w-6 h-6 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
-                title="Next match"
+                onClick={onNewNote}
+                className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
+                title="New note"
               >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" x2="12" y1="5" y2="19" /><line x1="5" x2="19" y1="12" y2="12" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={onNewFolder}
+                className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
+                title="New folder"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+                  <line x1="12" x2="12" y1="10" y2="16" /><line x1="9" x2="15" y1="13" y2="13" />
                 </svg>
               </button>
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
 
       <nav
