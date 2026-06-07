@@ -35,6 +35,7 @@ interface RichEditorProps {
 
 export default function RichEditor({ note, onUpdate, onUpdateName }: RichEditorProps) {
   const editor = useEditor({
+    shouldRerenderOnTransaction: true,
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
@@ -102,19 +103,17 @@ export default function RichEditor({ note, onUpdate, onUpdateName }: RichEditorP
           }
         }}
       >
-        <div className="max-w-3xl px-6 py-4 sm:px-10 sm:py-6 space-y-2">
-          <div>
-            <input
-              type="text"
-              value={note.title}
-              onChange={(e) => onUpdateName(note.id, e.target.value)}
-              className="w-full bg-transparent text-[1.375rem] font-bold text-[var(--foreground)] outline-none border-none p-0"
-              placeholder="Untitled"
-            />
-            <p className="text-[11px] text-[var(--text-muted)] mt-1 pb-2 border-b border-[var(--toolbar-border)]">
-              {note.lastUpdated ? formatDate(note.lastUpdated) : ""}
-            </p>
-          </div>
+        <div className="max-w-4xl mx-auto px-8 py-6 sm:px-12 sm:py-8">
+          <input
+            type="text"
+            value={note.title}
+            onChange={(e) => onUpdateName(note.id, e.target.value)}
+            className="w-full bg-transparent text-[2.5rem] font-bold text-[var(--foreground)] outline-none border-none p-0 mb-1 tracking-tight"
+            placeholder="Untitled"
+          />
+          <p className="text-sm text-[var(--text-muted)] mb-6">
+            {note.lastUpdated ? formatDate(note.lastUpdated) : ""}
+          </p>
           <EditorContent editor={editor} className="min-h-full" />
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { type Note } from "@/types";
 
 interface NoteTreeItemProps {
@@ -9,8 +9,17 @@ interface NoteTreeItemProps {
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
   onMoveNote: (noteId: string, targetFolderId: string | null) => void;
+  onRename: (id: string, title: string) => void;
   searchQuery: string;
   depth: number;
+}
+
+function parseDragData(dt: DataTransfer): { id: string; type: string } | null {
+  try {
+    return JSON.parse(dt.getData("text/plain"));
+  } catch {
+    return null;
+  }
 }
 
 function highlightMatch(text: string, query: string) {
@@ -45,11 +54,30 @@ export default function NoteTreeItem({
   onSelect,
   onToggle,
   onMoveNote,
+  onRename,
   searchQuery,
   depth,
 }: NoteTreeItemProps) {
   const [dragOver, setDragOver] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(note.title);
   const liRef = useRef<HTMLLIElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing) {
+      setEditValue(note.title);
+      requestAnimationFrame(() => inputRef.current?.select());
+    }
+  }, [isEditing, note.title]);
+
+  function commitRename() {
+    const trimmed = editValue.trim();
+    if (trimmed && trimmed !== note.title) {
+      onRename(note.id, trimmed);
+    }
+    setIsEditing(false);
+  }
 
   const isSelected = selectedId === note.id;
   const isFolder = note.type === "folder";
@@ -63,12 +91,14 @@ export default function NoteTreeItem({
   const paddingLeft = 8 + depth * 16;
 
   const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData("text/plain", note.id);
+    e.dataTransfer.setData("text/plain", JSON.stringify({ id: note.id, type: note.type }));
     e.dataTransfer.effectAllowed = "move";
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     if (!isFolder) return;
+    const dragged = parseDragData(e.dataTransfer);
+    if (dragged?.type === "folder") return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     setDragOver(true);
@@ -83,9 +113,9 @@ export default function NoteTreeItem({
     e.preventDefault();
     e.stopPropagation();
     setDragOver(false);
-    const draggedId = e.dataTransfer.getData("text/plain");
-    if (draggedId && draggedId !== note.id) {
-      onMoveNote(draggedId, note.id);
+    const dragged = parseDragData(e.dataTransfer);
+    if (dragged && dragged.id !== note.id) {
+      onMoveNote(dragged.id, note.id);
     }
   };
 
@@ -98,7 +128,7 @@ export default function NoteTreeItem({
       onDragOver={isFolder ? handleDragOver : undefined}
       onDragLeave={isFolder ? handleDragLeave : undefined}
       onDrop={isFolder ? handleDrop : undefined}
-      className={`relative rounded-lg transition-colors ${
+      className={`relative transition-colors ${
         isFolder && dragOver
           ? "bg-[var(--accent)]/5 ring-2 ring-[var(--accent)] ring-dashed"
           : ""
@@ -109,7 +139,11 @@ export default function NoteTreeItem({
         draggable={isNote}
         onDragStart={isNote ? handleDragStart : undefined}
         onClick={() => onSelect(note.id)}
-        className={`w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left text-xs font-medium transition-colors cursor-pointer ${
+        onDoubleClick={(e) => {
+          e.preventDefault();
+          setIsEditing(true);
+        }}
+        className={`w-full flex items-center gap-1 px-2 py-1 text-left text-sm transition-colors cursor-pointer ${
           isSelected
             ? "bg-[var(--sidebar-active)] text-[var(--foreground)]"
             : "text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)]"
@@ -122,7 +156,7 @@ export default function NoteTreeItem({
               e.stopPropagation();
               onToggle(note.id);
             }}
-            className={`shrink-0 w-4 h-4 flex items-center justify-center rounded transition-transform ${
+            className={`shrink-0 w-4 h-4 flex items-center justify-center transition-transform ${
               isExpanded ? "rotate-90" : ""
             }`}
           >
@@ -140,7 +174,7 @@ export default function NoteTreeItem({
             </svg>
           </span>
         ) : (
-          <span className="shrink-0 w-4 h-4 flex items-center justify-center">
+          <span className="shrink-0 w-4 h-4 flex items-center justify-center opacity-0">
             <svg
               width="10"
               height="10"
@@ -156,24 +190,46 @@ export default function NoteTreeItem({
             </svg>
           </span>
         )}
-        <span className="truncate flex-1">
-          {searchQuery ? highlightMatch(note.title, searchQuery) : note.title}
-        </span>
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={commitRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                commitRename();
+              } else if (e.key === "Escape") {
+                setIsEditing(false);
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onDoubleClick={(e) => e.stopPropagation()}
+            className="flex-1 min-w-0 bg-transparent text-sm text-[var(--foreground)] outline-none border border-[var(--accent)] rounded px-1 py-0"
+          />
+        ) : (
+          <span className="truncate flex-1">
+            {searchQuery ? highlightMatch(note.title, searchQuery) : note.title}
+          </span>
+        )}
       </button>
 
       {isFolder && isExpanded && (
         <ul role="group" className="space-y-0.5">
           {note.children.map((child) => (
-            <NoteTreeItem
-              key={child.id}
-              note={child}
-              selectedId={selectedId}
-              onSelect={onSelect}
-              onToggle={onToggle}
-              onMoveNote={onMoveNote}
-              searchQuery={searchQuery}
-              depth={1}
-            />
+              <NoteTreeItem
+                  key={child.id}
+                  note={child}
+                  selectedId={selectedId}
+                  onSelect={onSelect}
+                  onToggle={onToggle}
+                  onMoveNote={onMoveNote}
+                  onRename={onRename}
+                  searchQuery={searchQuery}
+                  depth={1}
+                />
           ))}
         </ul>
       )}

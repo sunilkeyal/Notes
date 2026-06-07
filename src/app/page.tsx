@@ -73,6 +73,31 @@ function findNote(notes: Note[], id: string): Note | null {
   return null;
 }
 
+function findParentFolderId(notes: Note[], id: string): string | null {
+  for (const note of notes) {
+    if (note.children.some((c) => c.id === id)) return note.id;
+    const found = findParentFolderId(note.children, id);
+    if (found !== null) return found;
+  }
+  return null;
+}
+
+function createNoteId(): string {
+  return `note-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
+function addNoteToTree(notes: Note[], parentId: string | null, note: Note): Note[] {
+  if (parentId === null) {
+    return [...notes, note];
+  }
+  return notes.map((n) => {
+    if (n.id === parentId) {
+      return { ...n, children: [...n.children, note], isExpanded: true };
+    }
+    return { ...n, children: addNoteToTree(n.children, parentId, note) };
+  });
+}
+
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
@@ -140,12 +165,50 @@ function findFirstNote(nodes: Note[]): Note | null {
     setNotes((prev) => updateNoteName(prev, id, title));
   }, []);
 
+  const handleRename = useCallback((id: string, title: string) => {
+    setNotes((prev) => updateNoteName(prev, id, title));
+  }, []);
+
   const handleMoveNote = useCallback((noteId: string, targetFolderId: string | null) => {
     setNotes((prev) => {
       const { nodes, removed } = removeNoteById(prev, noteId);
       if (!removed) return prev;
-      return addNoteToFolder(nodes, targetFolderId, { ...removed, children: [] });
+      if (removed.type === "folder" && targetFolderId !== null) return prev;
+      return addNoteToFolder(nodes, targetFolderId, removed);
     });
+  }, []);
+
+  const handleNewNote = useCallback(() => {
+    const id = createNoteId();
+    const now = new Date().toISOString();
+    const parentId = selectedId
+      ? findNote(notes, selectedId)?.type === "folder"
+        ? selectedId
+        : findParentFolderId(notes, selectedId)
+      : null;
+    const note: Note = {
+      id,
+      title: "Untitled",
+      type: "note",
+      content: "",
+      children: [],
+      lastUpdated: now,
+    };
+    setNotes((prev) => addNoteToTree(prev, parentId, note));
+    setSelectedId(id);
+  }, [notes, selectedId]);
+
+  const handleNewFolder = useCallback(() => {
+    const id = createNoteId();
+    const now = new Date().toISOString();
+    const folder: Note = {
+      id,
+      title: "New Folder",
+      type: "folder",
+      children: [],
+      lastUpdated: now,
+    };
+    setNotes((prev) => addNoteToTree(prev, null, folder));
   }, []);
 
   return (
@@ -170,15 +233,18 @@ function findFirstNote(nodes: Note[]): Note | null {
           onSelect={handleSelect}
           onToggle={handleToggle}
           onMoveNote={handleMoveNote}
+          onRename={handleRename}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          onNewNote={handleNewNote}
+          onNewFolder={handleNewFolder}
         />
       </aside>
 
       {/* Main content */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Mobile header */}
-        <div className="flex items-center gap-3 h-12 px-4 border-b border-[var(--sidebar-border)] bg-[var(--toolbar-bg)] md:hidden shrink-0">
+        <div className="flex items-center gap-3 h-11 px-4 border-b border-[var(--sidebar-border)] bg-[var(--toolbar-bg)] md:hidden shrink-0">
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}

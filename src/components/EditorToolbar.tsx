@@ -1,7 +1,7 @@
 "use client";
 
 import { type Editor } from "@tiptap/react";
-import { useCallback } from "react";
+
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -27,7 +27,7 @@ function ToolBtn({ onClick, isActive, title, children }: ToolBtnProps) {
       type="button"
       onClick={onClick}
       title={title}
-      className={`flex items-center justify-center w-8 h-8 rounded-md text-sm transition-colors ${
+      className={`flex items-center justify-center w-8 h-7 rounded text-sm transition-colors ${
         isActive
           ? "bg-[var(--sidebar-active)] text-[var(--accent)]"
           : "text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)]"
@@ -41,7 +41,7 @@ function ToolBtn({ onClick, isActive, title, children }: ToolBtnProps) {
 function Select({ value, onChange, options }: SelectProps) {
   return (
     <select
-      value={value}
+      value={String(value)}
       onChange={(e) => onChange(e.target.value)}
       className="h-8 rounded-md border-0 bg-transparent px-1.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)] cursor-pointer outline-none appearance-none"
     >
@@ -77,18 +77,10 @@ const FONT_FAMILIES = [
 ];
 
 export default function EditorToolbar({ editor }: EditorToolbarProps) {
-  const addImage = useCallback(() => {
-    if (!editor) return;
-    const url = window.prompt("Enter image URL:");
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
-    }
-  }, [editor]);
-
   if (!editor) return null;
 
   return (
-    <div className="flex items-center gap-0.5 px-4 py-2 border-b border-[var(--toolbar-border)] bg-[var(--toolbar-bg)] flex-wrap">
+    <div className="flex items-center gap-0.5 px-4 py-1.5 border-b border-[var(--toolbar-border)] bg-[var(--toolbar-bg)] flex-wrap">
       <div className="flex items-center gap-0.5 mr-1">
         <Select
           title="Heading level"
@@ -135,8 +127,6 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         </ToolBtn>
       </div>
 
-      <div className="w-px h-5 bg-[var(--toolbar-border)] mx-1" />
-
       <div className="flex items-center gap-0.5">
         <Select
           title="Font family"
@@ -151,8 +141,6 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
           options={FONT_FAMILIES}
         />
       </div>
-
-      <div className="w-px h-5 bg-[var(--toolbar-border)] mx-1" />
 
       <div className="flex items-center gap-0.5">
         <ToolBtn
@@ -175,13 +163,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
         </ToolBtn>
       </div>
 
-      <div className="ml-auto flex items-center gap-0.5">
-        <ToolBtn title="Insert image" onClick={addImage}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-          </svg>
-        </ToolBtn>
-      </div>
+      <div className="ml-auto" />
     </div>
   );
 }

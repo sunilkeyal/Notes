@@ -10,8 +10,11 @@ interface NoteTreeViewProps {
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
   onMoveNote: (noteId: string, targetFolderId: string | null) => void;
+  onRename: (id: string, title: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  onNewNote: () => void;
+  onNewFolder: () => void;
 }
 
 function flattenNotes(note: Note, query: string): Note[] {
@@ -32,8 +35,11 @@ export default function NoteTreeView({
   onSelect,
   onToggle,
   onMoveNote,
+  onRename,
   searchQuery,
   onSearchChange,
+  onNewNote,
+  onNewFolder,
 }: NoteTreeViewProps) {
   const [dragOver, setDragOver] = useState(false);
 
@@ -63,31 +69,55 @@ export default function NoteTreeView({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    const noteId = e.dataTransfer.getData("text/plain");
-    if (noteId) {
-      onMoveNote(noteId, null);
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+      if (data?.id) {
+        onMoveNote(data.id, null);
+      }
+    } catch {
+      // ignore
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)]">
-      <div className="flex items-center justify-between px-4 h-12 border-b border-[var(--sidebar-border)] shrink-0">
-        <h1 className="text-sm font-semibold tracking-tight text-[var(--foreground)]">
+    <div className="flex flex-col h-full bg-[var(--sidebar-bg)]">
+      <div className="flex items-center justify-between px-4 h-11 shrink-0">
+        <h1 className="text-sm font-semibold text-[var(--foreground)]">
           Notes
         </h1>
-        <span className="text-[10px] font-medium text-[var(--text-muted)] bg-[var(--sidebar-hover)] px-2 py-0.5 rounded-full">
-          {notes.length}
-        </span>
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            onClick={onNewNote}
+            className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
+            title="New note"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" x2="12" y1="5" y2="19" /><line x1="5" x2="19" y1="12" y2="12" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={onNewFolder}
+            className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
+            title="New folder"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+              <line x1="12" x2="12" y1="10" y2="16" /><line x1="9" x2="15" y1="13" y2="13" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <div className="px-3 pt-3 pb-2 shrink-0">
+      <div className="px-3 pb-2 shrink-0">
         <div className="relative">
           <svg
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] pointer-events-none"
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.5"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
@@ -96,10 +126,10 @@ export default function NoteTreeView({
           </svg>
           <input
             type="text"
-            placeholder="Search notes..."
+            placeholder="Search..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full h-8 pl-8 pr-3 text-xs rounded-lg border border-[var(--sidebar-border)] bg-[var(--editor-bg)] text-[var(--foreground)] placeholder:text-[var(--text-muted)] outline-none transition-colors focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]"
+            className="w-full h-8 pl-8 pr-3 text-sm rounded border-0 bg-[var(--sidebar-hover)] text-[var(--foreground)] placeholder:text-[var(--text-muted)] outline-none transition-colors focus:bg-[var(--sidebar-active)]"
           />
         </div>
       </div>
@@ -143,6 +173,7 @@ export default function NoteTreeView({
                 onSelect={onSelect}
                 onToggle={onToggle}
                 onMoveNote={onMoveNote}
+                onRename={onRename}
                 searchQuery={searchQuery}
                 depth={0}
               />
