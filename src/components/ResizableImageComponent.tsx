@@ -8,6 +8,10 @@ export default function ResizableImageComponent({
   updateAttributes,
   selected,
 }: NodeViewProps) {
+  const currentFloat = (node.attrs.float as string) ?? "none";
+  const isFloated = currentFloat !== "none";
+  const marginLeft = (node.attrs.marginLeft as number) ?? 0;
+
   const handleResizeStart = (e: React.MouseEvent, corner: string) => {
     e.preventDefault();
     e.stopPropagation();
@@ -60,10 +64,12 @@ export default function ResizableImageComponent({
   return (
     <NodeViewWrapper
       data-image-node
-      data-drag-handle
-      className={`relative inline-block max-w-full leading-none cursor-grab active:cursor-grabbing ${
-        selected ? "ring-2 ring-[var(--accent)] ring-offset-2 rounded-lg" : ""
-      }`}
+      className={`relative ${
+        isFloated
+          ? `block ${currentFloat === "left" ? "float-left mr-4 mb-2" : "float-right ml-4 mb-2"}`
+          : "block w-fit max-w-full"
+      } leading-[0] transition-all ${selected ? "ring-2 ring-[var(--accent)] ring-offset-2 rounded-lg" : ""}`}
+      style={marginLeft > 0 ? { marginLeft: `${marginLeft}px` } : undefined}
     >
       <img
         src={node.attrs.src}
@@ -77,6 +83,7 @@ export default function ResizableImageComponent({
       {selected && ["se", "sw", "ne", "nw"].map((corner) => (
         <span
           key={corner}
+          data-resize-handle
           className={cornerClass(corner)}
           onMouseDown={(e) => handleResizeStart(e, corner)}
         />
