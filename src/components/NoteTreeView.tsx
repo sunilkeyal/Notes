@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { type Note } from "@/types";
 import NoteTreeItem from "./NoteTreeItem";
 
@@ -14,21 +14,37 @@ interface NoteTreeViewProps {
   onDelete: (id: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  onSearchNav: (dir: "up" | "down") => void;
   onNewNote: () => void;
   onNewFolder: () => void;
 }
 
-function flattenNotes(note: Note, query: string): Note[] {
-  const matches =
-    query === "" ||
-    note.title.toLowerCase().includes(query.toLowerCase());
-  const results: Note[] = [];
-  if (matches) results.push(note);
-  for (const child of note.children) {
-    results.push(...flattenNotes(child, query));
-  }
-  return results;
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "");
 }
+
+function noteMatches(note: Note, q: string): boolean {
+  if (note.title.toLowerCase().includes(q)) return true;
+  if (note.type === "note" && note.content && stripHtml(note.content).toLowerCase().includes(q)) return true;
+  return false;
+}
+
+function filterTree(nodes: Note[], query: string): Note[] {
+  if (!query) return nodes;
+  const q = query.toLowerCase();
+  return nodes.reduce<Note[]>((acc, node) => {
+    if (node.type === "folder") {
+      const filteredChildren = filterTree(node.children, query);
+      if (noteMatches(node, q) || filteredChildren.length > 0) {
+        acc.push({ ...node, children: filteredChildren, isExpanded: true });
+      }
+    } else if (noteMatches(node, q)) {
+      acc.push(node);
+    }
+    return acc;
+  }, []);
+}
+
 
 export default function NoteTreeView({
   notes,
@@ -40,20 +56,14 @@ export default function NoteTreeView({
   onDelete,
   searchQuery,
   onSearchChange,
+  onSearchNav,
   onNewNote,
   onNewFolder,
 }: NoteTreeViewProps) {
   const [dragOver, setDragOver] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredNotes = searchQuery
-    ? notes
-        .map((note) => {
-          const flat = flattenNotes(note, searchQuery);
-          if (flat.length === 0) return null;
-          return note;
-        })
-        .filter(Boolean) as Note[]
-    : notes;
+  const filteredNotes = filterTree(notes, searchQuery);
 
   const handleDragOver = (e: React.DragEvent) => {
     if (e.dataTransfer.types.includes("text/plain")) {
@@ -78,6 +88,13 @@ export default function NoteTreeView({
       }
     } catch {
       // ignore
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      onSearchChange("");
+      searchInputRef.current?.focus();
     }
   };
 
@@ -113,7 +130,7 @@ export default function NoteTreeView({
       </div>
 
       <div className="px-3 pb-2 shrink-0">
-        <div className="relative">
+        <div className="relative flex items-center gap-1">
           <svg
             className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
             viewBox="0 0 24 24"
@@ -127,12 +144,38 @@ export default function NoteTreeView({
             <path d="m21 21-4.3-4.3" />
           </svg>
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full h-8 pl-8 pr-3 text-sm rounded border-0 bg-[var(--sidebar-hover)] text-[var(--foreground)] placeholder:text-[var(--text-muted)] outline-none transition-colors focus:bg-[var(--sidebar-active)]"
+            onKeyDown={handleSearchKeyDown}
+            className="flex-1 h-8 pl-8 pr-1 text-sm rounded border-0 bg-[var(--sidebar-hover)] text-[var(--foreground)] placeholder:text-[var(--text-muted)] outline-none transition-colors focus:bg-[var(--sidebar-active)]"
           />
+          {searchQuery && (
+            <div className="flex items-center gap-0.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => onSearchNav("up")}
+                className="flex items-center justify-center w-6 h-6 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
+                title="Previous match"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="18 15 12 9 6 15" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => onSearchNav("down")}
+                className="flex items-center justify-center w-6 h-6 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
+                title="Next match"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -149,7 +192,7 @@ export default function NoteTreeView({
             }`}
           >
             <svg
-              className="w-8 h-8 text-[var(--text-muted)] mb-2"
+              className="w-10 h-10 text-[var(--text-muted)] mb-3"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -157,12 +200,17 @@ export default function NoteTreeView({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="9" x2="15" y1="15" y2="15" />
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+              <line x1="8" x2="14" y1="11" y2="11" />
             </svg>
-            <p className="text-xs text-[var(--text-muted)]">
-              {searchQuery ? "No results found" : "No notes yet"}
+            <p className="text-sm font-medium text-[var(--text-secondary)]">
+              {searchQuery ? "No notes found" : "No notes yet"}
+            </p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">
+              {searchQuery
+                ? "Try a different search term"
+                : "Create a new note to get started"}
             </p>
           </div>
         ) : (

@@ -9,7 +9,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import { ResizableImage } from "@/extensions/ResizableImage";
 import { type Note } from "@/types";
 import EditorToolbar from "./EditorToolbar";
-import { useEffect } from "react";
+import { useEffect, useImperativeHandle, forwardRef, useRef } from "react";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -27,13 +27,27 @@ function formatDate(iso: string): string {
   return `${date}   ${time}`;
 }
 
+export interface RichEditorHandle {
+  searchAndNavigate: (query: string, dir: "up" | "down") => void;
+}
+
 interface RichEditorProps {
   note: Note;
   onUpdate: (id: string, content: string) => void;
   onUpdateName: (id: string, title: string) => void;
+  searchQuery: string;
+  searchNavIndex: number;
+  onSearchMatches: (count: number) => void;
 }
 
-export default function RichEditor({ note, onUpdate, onUpdateName }: RichEditorProps) {
+const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(function RichEditor({
+  note,
+  onUpdate,
+  onUpdateName,
+  searchQuery,
+  searchNavIndex,
+  onSearchMatches,
+}, ref) {
   const editor = useEditor({
     shouldRerenderOnTransaction: true,
     extensions: [
@@ -92,6 +106,64 @@ export default function RichEditor({ note, onUpdate, onUpdateName }: RichEditorP
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [note.id]);
 
+  function findSearchPositions(): { from: number; to: number }[] {
+    if (!editor || !searchQuery) return [];
+    const positions: { from: number; to: number }[] = [];
+    const q = searchQuery.toLowerCase();
+    const { doc } = editor.state;
+
+    doc.descendants((node: any, pos: number) => {
+      if (node.isText) {
+        const text = node.text?.toLowerCase() ?? "";
+        let idx = 0;
+        while ((idx = text.indexOf(q, idx)) !== -1) {
+          positions.push({ from: pos + idx, to: pos + idx + q.length });
+          idx += q.length;
+        }
+      }
+      return true;
+    });
+
+    return positions;
+  }
+
+  function goToMatch(index: number) {
+    if (!editor) return;
+    const matches = findSearchPositions();
+    if (matches.length === 0) return;
+    const idx = ((index % matches.length) + matches.length) % matches.length;
+    const match = matches[idx];
+    editor.commands.setTextSelection({ from: match.from, to: match.to });
+    editor.commands.scrollIntoView();
+    editor.commands.focus();
+  }
+
+  const prevSearchQuery = useRef(searchQuery);
+
+  useEffect(() => {
+    if (!editor) return;
+    const matches = findSearchPositions();
+    onSearchMatches(matches.length);
+    if (matches.length > 0 && searchNavIndex >= 0) {
+      const idx = ((searchNavIndex % matches.length) + matches.length) % matches.length;
+      const match = matches[idx];
+      editor.commands.setTextSelection({ from: match.from, to: match.to });
+      editor.commands.scrollIntoView();
+      const queryChanged = searchQuery !== prevSearchQuery.current;
+      prevSearchQuery.current = searchQuery;
+      if (!queryChanged) {
+        editor.commands.focus();
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchNavIndex, searchQuery, note.id]);
+
+  useImperativeHandle(ref, () => ({
+    searchAndNavigate(query: string, dir: "up" | "down") {
+      // handled via props
+    },
+  }));
+
   return (
     <div className="flex flex-col h-full bg-[var(--editor-bg)]">
       <EditorToolbar editor={editor} />
@@ -119,4 +191,6 @@ export default function RichEditor({ note, onUpdate, onUpdateName }: RichEditorP
       </div>
     </div>
   );
-}
+});
+
+export default RichEditor;

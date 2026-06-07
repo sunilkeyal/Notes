@@ -111,8 +111,11 @@ export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchNavIndex, setSearchNavIndex] = useState(0);
+  const [searchMatchCount, setSearchMatchCount] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isLoaded = useRef(false);
+  const prevSelectedId = useRef(selectedId);
 
   useEffect(() => {
     fetch("/api/notes")
@@ -142,6 +145,13 @@ export default function Home() {
     }, 1000);
     return () => clearTimeout(timer);
   }, [notes]);
+
+  useEffect(() => {
+    if (prevSelectedId.current !== selectedId) {
+      prevSelectedId.current = selectedId;
+      setSearchNavIndex(0);
+    }
+  }, [selectedId]);
 
   const selectedNote = findNote(notes, selectedId ?? "");
 
@@ -218,6 +228,23 @@ export default function Home() {
     setNotes((prev) => addNoteToTree(prev, null, folder));
   }, []);
 
+  const handleSearchNav = useCallback((dir: "up" | "down") => {
+    setSearchNavIndex((prev) => {
+      const max = Math.max(0, searchMatchCount - 1);
+      if (dir === "down") return Math.min(prev + 1, max);
+      return Math.max(prev - 1, 0);
+    });
+  }, [searchMatchCount]);
+
+  const handleSearchChange = useCallback((query: string) => {
+    setSearchQuery(query);
+    setSearchNavIndex(0);
+  }, []);
+
+  const handleSearchMatches = useCallback((count: number) => {
+    setSearchMatchCount(count);
+  }, []);
+
   return (
     <div className="flex h-full bg-[var(--background)]">
       {/* Mobile overlay */}
@@ -243,7 +270,8 @@ export default function Home() {
           onRename={handleUpdateName}
           onDelete={handleDelete}
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={handleSearchChange}
+          onSearchNav={handleSearchNav}
           onNewNote={handleNewNote}
           onNewFolder={handleNewFolder}
         />
@@ -285,6 +313,9 @@ export default function Home() {
             note={selectedNote}
             onUpdate={handleUpdate}
             onUpdateName={handleUpdateName}
+            searchQuery={searchQuery}
+            searchNavIndex={searchNavIndex}
+            onSearchMatches={handleSearchMatches}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center bg-[var(--editor-bg)]">

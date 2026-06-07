@@ -41,11 +41,36 @@ function highlightMatch(text: string, query: string) {
   );
 }
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "");
+}
+
+function getSmartSnippet(content: string | undefined, query: string): string | null {
+  if (!content || !query) return null;
+  const stripped = stripHtml(content);
+  const q = query.toLowerCase();
+  const text = stripped.toLowerCase();
+  const idx = text.indexOf(q);
+  if (idx === -1) return null;
+
+  const contextLen = 50;
+  const start = Math.max(0, idx - contextLen);
+  const end = Math.min(stripped.length, idx + q.length + contextLen);
+
+  let snippet = stripped.slice(start, end);
+  if (start > 0) snippet = "..." + snippet;
+  if (end < stripped.length) snippet = snippet + "...";
+
+  return snippet;
+}
+
 function containsMatchingChild(note: Note, query: string): boolean {
   if (!query) return false;
+  const q = query.toLowerCase();
   return note.children.some(
     (child) =>
-      child.title.toLowerCase().includes(query.toLowerCase()) ||
+      child.title.toLowerCase().includes(q) ||
+      (child.content && stripHtml(child.content).toLowerCase().includes(q)) ||
       containsMatchingChild(child, query)
   );
 }
@@ -86,6 +111,9 @@ export default function NoteTreeItem({
   const isSelected = selectedId === note.id;
   const isFolder = note.type === "folder";
   const isNote = note.type === "note";
+
+  const snippet = isNote ? getSmartSnippet(note.content, searchQuery) : null;
+
   function countDescendants(n: Note): number {
     let count = 0;
     for (const child of n.children) {
@@ -160,7 +188,7 @@ export default function NoteTreeItem({
           setEditValue(note.title);
           setIsEditing(true);
         }}
-        className={`w-full flex items-center gap-1 px-2 py-1 text-left text-sm transition-colors cursor-pointer ${
+        className={`w-full flex items-start gap-1 px-2 py-1 text-left text-sm transition-colors cursor-pointer ${
           isSelected
             ? "bg-[var(--sidebar-active)] text-[var(--foreground)]"
             : "text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)]"
@@ -173,7 +201,7 @@ export default function NoteTreeItem({
               e.stopPropagation();
               onToggle(note.id);
             }}
-            className={`shrink-0 w-4 h-4 flex items-center justify-center transition-transform ${
+            className={`shrink-0 w-4 h-4 flex items-center justify-center transition-transform mt-0.5 ${
               isExpanded ? "rotate-90" : ""
             }`}
           >
@@ -191,7 +219,7 @@ export default function NoteTreeItem({
             </svg>
           </span>
         ) : (
-          <span className="shrink-0 w-4 h-4 flex items-center justify-center opacity-0">
+          <span className="shrink-0 w-4 h-4 flex items-center justify-center mt-0.5 opacity-0">
             <svg
               width="10"
               height="10"
@@ -207,30 +235,37 @@ export default function NoteTreeItem({
             </svg>
           </span>
         )}
-        {isEditing ? (
-          <input
-            ref={inputRef}
-            type="text"
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={commitRename}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                commitRename();
-              } else if (e.key === "Escape") {
-                setIsEditing(false);
-              }
-            }}
-            onClick={(e) => e.stopPropagation()}
-            onDoubleClick={(e) => e.stopPropagation()}
-            className="flex-1 min-w-0 bg-transparent text-sm text-[var(--foreground)] outline-none border border-[var(--accent)] rounded px-1 py-0"
-          />
-        ) : (
-          <span className="truncate flex-1">
-            {searchQuery ? highlightMatch(note.title, searchQuery) : note.title}
-          </span>
-        )}
+        <div className="flex-1 min-w-0">
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={commitRename}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitRename();
+                } else if (e.key === "Escape") {
+                  setIsEditing(false);
+                }
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onDoubleClick={(e) => e.stopPropagation()}
+              className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none border border-[var(--accent)] rounded px-1 py-0"
+            />
+          ) : (
+            <div className="truncate">
+              {searchQuery ? highlightMatch(note.title, searchQuery) : note.title}
+            </div>
+          )}
+          {snippet && !isEditing && (
+            <div className="text-xs text-[var(--text-muted)] truncate mt-0.5 leading-relaxed">
+              {highlightMatch(snippet, searchQuery)}
+            </div>
+          )}
+        </div>
         <span
           role="button"
           tabIndex={0}
