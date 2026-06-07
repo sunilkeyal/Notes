@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { Box, Flex, Text, Input, IconButton } from "@chakra-ui/react";
 import { type Note } from "@/types";
 import NoteTreeItem from "./NoteTreeItem";
 
@@ -114,142 +115,176 @@ export default function NoteTreeView({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[var(--sidebar-bg)]">
-      <div className="flex items-center gap-2 px-2 h-11 shrink-0">
+    <Flex direction="column" h="full" css={{ bg: "bg.subtle" }}>
+      <Flex align="center" gap="2" px="2" h="10" flexShrink="0">
         {searchOpen ? (
-          <div className="flex items-center gap-1.5 w-full">
-            <button
-              type="button"
+          <Flex align="center" gap="1.5" w="full">
+            <IconButton
+              size="xs"
+              variant="ghost"
               onClick={closeSearch}
-              className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors shrink-0"
-              title="Close search"
+              aria-label="Close search"
+              css={{ color: "fg.muted", _hover: { bg: "bg.muted", color: "fg.subtle" } }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 12H5" /><polyline points="12 19 5 12 12 5" />
               </svg>
-            </button>
-            <div className="relative flex-1 flex items-center">
-              <svg
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            </IconButton>
+            <Box position="relative" flex="1" display="flex" alignItems="center">
+              <Box
+                position="absolute"
+                left="2"
+                top="50%"
+                css={{ transform: "translateY(-50%)", color: "fg.muted", pointerEvents: "none" }}
               >
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
-              <input
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </Box>
+              <Input
                 ref={searchInputRef}
-                type="text"
                 placeholder="Search notes..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 onKeyDown={handleSearchKeyDown}
-                className="flex-1 h-8 pl-8 pr-1 text-sm rounded border-0 bg-[var(--sidebar-hover)] text-[var(--foreground)] placeholder:text-[var(--text-muted)] outline-none transition-colors focus:bg-[var(--sidebar-active)]"
+                variant="outline"
+                css={{
+                  flex: 1,
+                  h: 8,
+                  paddingLeft: "2rem",
+                  paddingRight: "0.25rem",
+                  fontSize: "sm",
+                  bg: "bg.muted",
+                  color: "fg.subtle",
+                  _placeholder: { color: "fg.muted" },
+                  border: 0,
+                  outline: "none",
+                  _focus: { bg: "bg.emphasized" },
+                }}
               />
               {searchQuery && (
-                <div className="flex items-center gap-0.5 shrink-0 ml-1">
-                  <button
-                    type="button"
+                <Flex align="center" gap="0.5" flexShrink="0" ml="1">
+                  <IconButton
+                    size="xs"
+                    variant="ghost"
                     onClick={() => onSearchNav("up")}
-                    className="flex items-center justify-center w-6 h-6 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
-                    title="Previous match"
+                    aria-label="Previous match"
+                    css={{ color: "fg.muted", _hover: { bg: "bg.muted", color: "fg.subtle" } }}
                   >
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="18 15 12 9 6 15" />
                     </svg>
-                  </button>
-                  <button
-                    type="button"
+                  </IconButton>
+                  <IconButton
+                    size="xs"
+                    variant="ghost"
                     onClick={() => onSearchNav("down")}
-                    className="flex items-center justify-center w-6 h-6 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
-                    title="Next match"
+                    aria-label="Next match"
+                    css={{ color: "fg.muted", _hover: { bg: "bg.muted", color: "fg.subtle" } }}
                   >
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
-                  </button>
-                </div>
+                  </IconButton>
+                </Flex>
               )}
-            </div>
-          </div>
+            </Box>
+          </Flex>
         ) : (
-          <div className="flex items-center gap-0.5">
-            <button
-              type="button"
+          <Flex align="center" gap="0.5">
+            <IconButton
+              size="xs"
+              variant="ghost"
               onClick={openSearch}
-              className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
-              title="Search"
+              aria-label="Search"
+              css={{ color: "fg.muted", _hover: { bg: "bg.muted", color: "fg.subtle" } }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
               </svg>
-            </button>
-            <button
-              type="button"
+            </IconButton>
+            <IconButton
+              size="xs"
+              variant="ghost"
               onClick={onNewNote}
-              className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
-              title="New note"
+              aria-label="New note"
+              css={{ color: "fg.muted", _hover: { bg: "bg.muted", color: "fg.subtle" } }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" x2="12" y1="5" y2="19" /><line x1="5" x2="19" y1="12" y2="12" />
               </svg>
-            </button>
-            <button
-              type="button"
+            </IconButton>
+            <IconButton
+              size="xs"
+              variant="ghost"
               onClick={onNewFolder}
-              className="flex items-center justify-center w-7 h-7 rounded text-[var(--text-muted)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)] transition-colors"
-              title="New folder"
+              aria-label="New folder"
+              css={{ color: "fg.muted", _hover: { bg: "bg.muted", color: "fg.subtle" } }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
                 <line x1="12" x2="12" y1="10" y2="16" /><line x1="9" x2="15" y1="13" y2="13" />
               </svg>
-            </button>
-          </div>
+            </IconButton>
+          </Flex>
         )}
-      </div>
+      </Flex>
 
-      <nav
-        className="flex-1 overflow-y-auto px-2 pb-3"
+      <Box
+        as="nav"
+        flex="1"
+        overflowY="auto"
+        px="2"
+        pb="3"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         {filteredNotes.length === 0 ? (
-          <div
-            className={`flex flex-col items-center justify-center h-full text-center px-4 rounded-lg transition-colors ${
-              dragOver ? "bg-[var(--sidebar-active)] ring-2 ring-[var(--accent)] ring-dashed" : ""
-            }`}
+          <Flex
+            direction="column"
+            align="center"
+            justify="center"
+            h="full"
+            textAlign="center"
+            px="4"
+            rounded="lg"
+            css={{
+              transition: "colors 200ms",
+              ...(dragOver
+                ? { bg: "bg.emphasized", boxShadow: "0 0 0 2px accent" }
+                : {}),
+            }}
           >
-            <svg
-              className="w-10 h-10 text-[var(--text-muted)] mb-3"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-              <line x1="8" x2="14" y1="11" y2="11" />
-            </svg>
-            <p className="text-sm font-medium text-[var(--text-secondary)]">
+            <Box w={10} h={10} mb={3} css={{ color: "fg.muted" }}>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                width="100%"
+                height="100%"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+                <line x1="8" x2="14" y1="11" y2="11" />
+              </svg>
+            </Box>
+            <Text fontSize="sm" fontWeight="medium" css={{ color: "fg.subtle" }}>
               {searchQuery ? "No notes found" : "No notes yet"}
-            </p>
-            <p className="text-xs text-[var(--text-muted)] mt-1">
+            </Text>
+            <Text fontSize="xs" mt="1" css={{ color: "fg.muted" }}>
               {searchQuery
                 ? "Try a different search term"
                 : "Create a new note to get started"}
-            </p>
-          </div>
+            </Text>
+          </Flex>
         ) : (
-          <ul className="space-y-0.5" role="tree">
+          <Box as="ul" css={{ "& > * + *": { marginTop: "0.125rem" } }} role="tree">
             {filteredNotes.map((note) => (
               <NoteTreeItem
                 key={note.id}
@@ -264,9 +299,9 @@ export default function NoteTreeView({
                 depth={0}
               />
             ))}
-          </ul>
+          </Box>
         )}
-      </nav>
-    </div>
+      </Box>
+    </Flex>
   );
 }

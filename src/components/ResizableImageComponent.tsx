@@ -1,6 +1,6 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
 
+import { Box, chakra } from "@chakra-ui/react";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 
 export default function ResizableImageComponent({
@@ -53,41 +53,52 @@ export default function ResizableImageComponent({
   };
 
   const cornerClass = (corner: string) => {
-    const base =
-      "absolute w-3 h-3 bg-white border-2 border-[var(--accent)] rounded-sm shadow-sm z-10";
-    const vert = corner.includes("n") ? "top-0 -mt-1.5" : "bottom-0 -mb-1.5";
-    const horiz = corner.includes("w") ? "left-0 -ml-1.5" : "right-0 -mr-1.5";
-    const cursor = `cursor-${corner}-resize`;
-    return `${base} ${vert} ${horiz} ${cursor}`;
+    const vert = corner.includes("n") ? { top: "0", marginTop: "-0.375rem" } : { bottom: "0", marginBottom: "-0.375rem" };
+    const horiz = corner.includes("w") ? { left: "0", marginLeft: "-0.375rem" } : { right: "0", marginRight: "-0.375rem" };
+    const cursor = corner.includes("n") || corner.includes("s") ? "ns-resize" : corner.includes("e") || corner.includes("w") ? "ew-resize" : `${corner}-resize`;
+    return { position: "absolute", width: "0.75rem", height: "0.75rem", bg: "white", border: "2px solid var(--chakra-colors-accent)", borderRadius: "0.125rem", boxShadow: "0 1px 3px rgba(0,0,0,0.2)", zIndex: 10, cursor, ...vert, ...horiz };
   };
 
   return (
-    <NodeViewWrapper
-      data-image-node
-      className={`relative ${
-        isFloated
-          ? `block ${currentFloat === "left" ? "float-left mr-4 mb-2" : "float-right ml-4 mb-2"}`
-          : "block w-fit max-w-full"
-      } leading-[0] transition-all ${selected ? "ring-2 ring-[var(--accent)] ring-offset-2 rounded-lg" : ""}`}
-      style={marginLeft > 0 ? { marginLeft: `${marginLeft}px` } : undefined}
-    >
-      <img
-        src={node.attrs.src}
-        alt={node.attrs.alt ?? ""}
-        title={node.attrs.title ?? ""}
-        width={node.attrs.width ?? undefined}
-        height={node.attrs.height ?? undefined}
-        className="max-w-full h-auto rounded-lg select-none"
-        draggable={false}
-      />
-      {selected && ["se", "sw", "ne", "nw"].map((corner) => (
-        <span
-          key={corner}
-          data-resize-handle
-          className={cornerClass(corner)}
-          onMouseDown={(e) => handleResizeStart(e, corner)}
+    <NodeViewWrapper data-image-node>
+      <Box
+        position="relative"
+        display="inline-block"
+        css={{
+          ...(isFloated
+            ? currentFloat === "left"
+              ? { float: "left", marginRight: "1rem", marginBottom: "0.5rem" }
+              : { float: "right", marginLeft: "1rem", marginBottom: "0.5rem" }
+            : {}),
+          lineHeight: 0,
+        }}
+        style={marginLeft > 0 ? { marginLeft: `${marginLeft}px` } : undefined}
+      >
+        <chakra.img
+          src={node.attrs.src}
+          alt={node.attrs.alt ?? ""}
+          title={node.attrs.title ?? ""}
+          width={node.attrs.width ?? undefined}
+          height={node.attrs.height ?? undefined}
+          style={{
+            maxWidth: "100%",
+            height: "auto",
+            borderRadius: "0.5rem",
+            userSelect: "none",
+            ...(selected ? { boxShadow: "0 0 0 2px var(--chakra-colors-accent)" } : {}),
+          }}
+          draggable={false}
         />
-      ))}
+        {selected && ["se", "sw", "ne", "nw"].map((corner) => (
+          <Box
+            as="span"
+            key={corner}
+            data-resize-handle
+            css={cornerClass(corner)}
+            onMouseDown={(e) => handleResizeStart(e, corner)}
+          />
+        ))}
+      </Box>
     </NodeViewWrapper>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { type Editor } from "@tiptap/react";
-
+import { Box, Flex, IconButton, Spacer, NativeSelectField, NativeSelectRoot } from "@chakra-ui/react";
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -18,39 +18,70 @@ interface SelectProps {
   value: string | number;
   onChange: (val: string) => void;
   options: { label: string; value: string | number }[];
-  title: string;
 }
 
 function ToolBtn({ onClick, isActive, title, children }: ToolBtnProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <IconButton
+      size="xs"
+      variant="ghost"
+      aria-label={title}
       title={title}
-      className={`flex items-center justify-center w-8 h-7 rounded text-sm transition-colors ${
-        isActive
-          ? "bg-[var(--sidebar-active)] text-[var(--accent)]"
-          : "text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)]"
-      }`}
+      onClick={onClick}
+      css={{
+        color: isActive ? "accent" : "fg.subtle",
+        bg: isActive ? "bg.emphasized" : "transparent",
+        _hover: {
+          bg: "bg.muted",
+          color: isActive ? "accent" : "fg",
+        },
+      }}
     >
       {children}
-    </button>
+    </IconButton>
   );
 }
 
 function Select({ value, onChange, options }: SelectProps) {
   return (
-    <select
-      value={String(value)}
-      onChange={(e) => onChange(e.target.value)}
-      className="h-8 rounded-md border-0 bg-transparent px-1.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)] cursor-pointer outline-none appearance-none"
+    <NativeSelectRoot
+      size="xs"
+      variant="plain"
+      css={{
+        bg: "transparent",
+        borderRadius: "0.375rem",
+        _hover: { bg: "bg.muted" },
+      }}
     >
-      {options.map((opt) => (
-        <option key={String(opt.value)} value={String(opt.value)}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
+      <NativeSelectField
+        value={String(value)}
+        onChange={(e) => onChange(e.target.value)}
+        css={{
+          color: "fg.subtle",
+          fontSize: "0.75rem",
+          fontWeight: "500",
+        }}
+      >
+        {options.map((opt) => (
+          <option key={String(opt.value)} value={String(opt.value)}>
+            {opt.label}
+          </option>
+        ))}
+      </NativeSelectField>
+    </NativeSelectRoot>
+  );
+}
+
+function ToolbarDivider() {
+  return (
+    <Box
+      css={{
+        width: "1px",
+        height: "1rem",
+        bg: "border.subtle",
+        flexShrink: 0,
+      }}
+    />
   );
 }
 
@@ -71,10 +102,23 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
   if (!editor) return null;
 
   return (
-    <div className="flex items-center gap-0.5 px-4 py-1.5 border-b border-[var(--toolbar-border)] bg-[var(--toolbar-bg)] flex-wrap">
-      <div className="flex items-center gap-0.5 mr-1">
+    <Flex
+      gap="0.5"
+      px="2"
+      py="0.5"
+      alignItems="center"
+      css={{
+        borderBottom: "1px solid",
+        borderColor: "border.subtle",
+        bg: "toolbar.bg",
+        overflowX: "auto",
+        flexShrink: 0,
+        "&::-webkit-scrollbar": { height: "2px" },
+        "&::-webkit-scrollbar-thumb": { bg: "border.subtle", borderRadius: "1px" },
+      }}
+    >
+      <Flex alignItems="center" gap="0.5">
         <Select
-          title="Heading level"
           value={editor.isActive("heading") ? editor.getAttributes("heading").level : 0}
           onChange={(val) => {
             const level = Number(val);
@@ -86,9 +130,11 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
           }}
           options={HEADING_SIZES}
         />
-      </div>
+      </Flex>
 
-      <div className="flex items-center gap-0.5">
+      <ToolbarDivider />
+
+      <Flex alignItems="center" gap="0.5">
         <ToolBtn
           title="Bold (Ctrl+B)"
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -116,11 +162,12 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
             <path d="M6 4v6a6 6 0 0 0 12 0V4" /><line x1="4" x2="20" y1="20" y2="20" />
           </svg>
         </ToolBtn>
-      </div>
+      </Flex>
 
-      <div className="flex items-center gap-0.5">
+      <ToolbarDivider />
+
+      <Flex alignItems="center" gap="0.5">
         <Select
-          title="Font family"
           value={editor.getAttributes("textStyle").fontFamily || "var(--font-geist-sans), sans-serif"}
           onChange={(val) => {
             if (val === "var(--font-geist-sans), sans-serif") {
@@ -131,9 +178,11 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
           }}
           options={FONT_FAMILIES}
         />
-      </div>
+      </Flex>
 
-      <div className="flex items-center gap-0.5">
+      <ToolbarDivider />
+
+      <Flex alignItems="center" gap="0.5">
         <ToolBtn
           title="Bullet list"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -152,9 +201,9 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
             <line x1="10" x2="21" y1="6" y2="6" /><line x1="10" x2="21" y1="12" y2="12" /><line x1="10" x2="21" y1="18" y2="18" /><path d="M4 6h1v4" /><path d="M4 10h2" /><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" />
           </svg>
         </ToolBtn>
-      </div>
+      </Flex>
 
-      <div className="ml-auto" />
-    </div>
+      <Spacer />
+    </Flex>
   );
 }

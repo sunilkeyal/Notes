@@ -5,6 +5,7 @@ import { type Note } from "@/types";
 import NoteTreeView from "@/components/NoteTreeView";
 import RichEditor from "@/components/RichEditor";
 import { SEED_NOTES } from "@/lib/seed";
+import { Box, Flex, Text, Heading, IconButton } from "@chakra-ui/react";
 
 function toggleNoteExpand(notes: Note[], id: string): Note[] {
   return notes.map((note) => {
@@ -246,45 +247,66 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full">
+    <Flex flexDir="column" h="full">
       {/* Global header */}
-      <header className="flex items-center gap-3 h-11 px-4 border-b border-[var(--sidebar-border)] bg-[var(--header-bg)] shrink-0">
-        <button
-          type="button"
+      <Flex as="header" alignItems="center" gap="3" px="4" h="10" css={{ borderBottom: "1px solid", borderColor: "border", bg: "bg.header", flexShrink: 0 }}>
+        <IconButton
+          size="sm"
           onClick={() => setSidebarOpen(true)}
-          className="md:hidden flex items-center justify-center w-8 h-8 rounded-md text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)]"
+          hideFrom="md"
+          variant="ghost"
           aria-label="Open sidebar"
+          css={{ color: "fg.subtle", _hover: { bg: "bg.muted" } }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" x2="21" y1="6" y2="6" />
             <line x1="3" x2="21" y1="12" y2="12" />
             <line x1="3" x2="21" y1="18" y2="18" />
           </svg>
-        </button>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--text-muted)] shrink-0">
-          <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h9.8c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V5.5L15.5 2z" />
-          <polyline points="15.5 2 15.5 5.5 19 5.5" />
-          <line x1="9" x2="14" y1="10" y2="10" />
-          <line x1="9" x2="16" y1="14" y2="14" />
-          <line x1="9" x2="12" y1="18" y2="18" />
-        </svg>
-        <h1 className="text-sm font-semibold text-[var(--foreground)]">Notes</h1>
-      </header>
+        </IconButton>
+        <Box as="span" css={{ color: "fg.muted" }} flexShrink={0}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v16.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h9.8c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V5.5L15.5 2z" />
+            <polyline points="15.5 2 15.5 5.5 19 5.5" />
+            <line x1="9" x2="14" y1="10" y2="10" />
+            <line x1="9" x2="16" y1="14" y2="14" />
+            <line x1="9" x2="12" y1="18" y2="18" />
+          </svg>
+        </Box>
+        <Heading as="h1" fontSize="sm" fontWeight="semibold" css={{ color: "fg" }}>Notes</Heading>
+      </Flex>
 
-      <div className="flex flex-1 min-h-0 bg-[var(--background)]">
+      <Flex flex="1" css={{ minHeight: 0, bg: "bg" }}>
         {/* Mobile overlay */}
         {sidebarOpen && (
-          <div
-            className="fixed inset-0 z-30 bg-[var(--overlay)] backdrop-blur-sm md:hidden"
+          <Box
+            position="fixed"
+            inset="0"
+            zIndex="30"
             onClick={() => setSidebarOpen(false)}
+            hideFrom="md"
+            css={{ bg: "overlay", backdropFilter: "blur(4px)" }}
           />
         )}
 
         {/* Sidebar */}
-        <aside
-          className={`fixed md:relative z-40 md:z-auto inset-y-0 left-0 w-[280px] shrink-0 transition-transform duration-300 ease-out md:translate-x-0 ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        <Box
+          as="aside"
+          css={{
+            width: "280px",
+            flexShrink: 0,
+            transition: "transform 300ms ease-out",
+            transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
+            "@media (min-width: 768px)": {
+              position: "relative",
+              transform: "translateX(0)",
+              zIndex: "auto",
+            },
+            position: "fixed",
+            insetY: 0,
+            left: 0,
+            zIndex: 40,
+          }}
         >
           <NoteTreeView
             notes={notes}
@@ -300,52 +322,54 @@ export default function Home() {
             onNewNote={handleNewNote}
             onNewFolder={handleNewFolder}
           />
-        </aside>
+        </Box>
 
         {/* Main content */}
-        <main className="flex-1 flex flex-col min-w-0">
-
-        {selectedNote && selectedNote.type === "note" ? (
-          <RichEditor
-            key={selectedNote.id}
-            note={selectedNote}
-            onUpdate={handleUpdate}
-            onUpdateName={handleUpdateName}
-            searchQuery={searchQuery}
-            searchNavIndex={searchNavIndex}
-            onSearchMatches={handleSearchMatches}
-          />
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-[var(--editor-bg)]">
-            <div className="text-center px-6">
-              <svg
-                className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" x2="8" y1="13" y2="13" />
-                <line x1="16" x2="8" y1="17" y2="17" />
-                <polyline points="10 9 9 9 8 9" />
-              </svg>
-              <p className="text-sm font-medium text-[var(--text-secondary)]">
-                Select a note from the sidebar
-              </p>
-              <p className="text-xs text-[var(--text-muted)] mt-1.5">
-                {selectedNote
-                  ? "This is a folder — select a note inside it"
-                  : "Select a note to start editing"}
-              </p>
-            </div>
-          </div>
-        )}
-      </main>
-      </div>
-    </div>
+        <Box as="main" flex="1" display="flex" flexDir="column" minW="0">
+          {selectedNote && selectedNote.type === "note" ? (
+            <RichEditor
+              key={selectedNote.id}
+              note={selectedNote}
+              onUpdate={handleUpdate}
+              onUpdateName={handleUpdateName}
+              searchQuery={searchQuery}
+              searchNavIndex={searchNavIndex}
+              onSearchMatches={handleSearchMatches}
+            />
+          ) : (
+            <Flex flex="1" alignItems="center" justifyContent="center" css={{ bg: "bg.surface" }}>
+              <Box textAlign="center" px="6">
+                <Box css={{ color: "fg.muted" }} mb="4">
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" x2="8" y1="13" y2="13" />
+                    <line x1="16" x2="8" y1="17" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                  </svg>
+                </Box>
+                <Text fontSize="sm" fontWeight="medium" css={{ color: "fg.subtle" }}>
+                  Select a note from the sidebar
+                </Text>
+                <Text fontSize="xs" mt="1.5" css={{ color: "fg.muted" }}>
+                  {selectedNote
+                    ? "This is a folder — select a note inside it"
+                    : "Select a note to start editing"}
+                </Text>
+              </Box>
+            </Flex>
+          )}
+        </Box>
+      </Flex>
+    </Flex>
   );
 }

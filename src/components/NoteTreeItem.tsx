@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { type Note } from "@/types";
 import ConfirmDialog from "./ConfirmDialog";
+import { Box, Input } from "@chakra-ui/react";
 
 interface NoteTreeItemProps {
   note: Note;
@@ -33,9 +34,9 @@ function highlightMatch(text: string, query: string) {
   return (
     <>
       {text.slice(0, idx)}
-      <mark className="bg-[var(--highlight)] text-inherit rounded-sm px-0.5">
+      <Box as="mark" css={{ bg: "highlight", color: "inherit", borderRadius: "2px", px: "2px" }}>
         {text.slice(idx, idx + q.length)}
-      </mark>
+      </Box>
       {text.slice(idx + q.length)}
     </>
   );
@@ -162,7 +163,8 @@ export default function NoteTreeItem({
   };
 
   return (
-    <li
+    <Box
+      as="li"
       ref={liRef}
       role="treeitem"
       aria-selected={isSelected}
@@ -170,14 +172,15 @@ export default function NoteTreeItem({
       onDragOver={isFolder ? handleDragOver : undefined}
       onDragLeave={isFolder ? handleDragLeave : undefined}
       onDrop={isFolder ? handleDrop : undefined}
-      className={`relative transition-colors ${
-        isFolder && dragOver
-          ? "bg-[var(--accent)]/5 ring-2 ring-[var(--accent)] ring-dashed"
-          : ""
-      }`}
+      css={{
+        position: "relative",
+        ...(isFolder && dragOver
+          ? { bg: "color-mix(in srgb, var(--chakra-colors-accent) 5%, transparent)", outline: "2px dashed var(--chakra-colors-accent)" }
+          : {}),
+      }}
     >
-      <button
-        type="button"
+      <Box
+        as="button"
         draggable={isNote}
         onDragStart={isNote ? handleDragStart : undefined}
         onMouseEnter={() => setIsHovered(true)}
@@ -188,22 +191,48 @@ export default function NoteTreeItem({
           setEditValue(note.title);
           setIsEditing(true);
         }}
-        className={`w-full flex items-start gap-1 px-2 py-1 text-left text-sm transition-colors cursor-pointer ${
-          isSelected
-            ? "bg-[var(--sidebar-active)] text-[var(--foreground)]"
-            : "text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--foreground)]"
-        } ${isNote ? "cursor-grab active:cursor-grabbing" : ""}`}
-        style={{ paddingLeft: `${paddingLeft}px` }}
+        css={{
+          width: "100%",
+          display: "flex",
+          alignItems: "flex-start",
+          gap: "4px",
+          px: "8px",
+          py: "4px",
+          textAlign: "left",
+          fontSize: "14px",
+          cursor: isNote ? "grab" : "pointer",
+          transition: "all 0.12s",
+          paddingLeft: `${paddingLeft}px`,
+          borderLeft: "2px solid transparent",
+          borderLeftColor: isSelected ? "accent" : "transparent",
+          bg: isSelected ? "bg.emphasized" : "transparent",
+          color: isSelected ? "fg" : "fg.subtle",
+          fontWeight: isSelected ? "500" : "400",
+          _hover: isSelected ? {} : {
+            bg: "bg.muted",
+            color: "fg",
+          },
+          ...(isNote ? { _active: { cursor: "grabbing" } } : {}),
+        }}
       >
         {isFolder ? (
-          <span
+          <Box
+            as="span"
             onClick={(e) => {
               e.stopPropagation();
               onToggle(note.id);
             }}
-            className={`shrink-0 w-4 h-4 flex items-center justify-center transition-transform mt-0.5 ${
-              isExpanded ? "rotate-90" : ""
-            }`}
+            css={{
+              flexShrink: 0,
+              w: "16px",
+              h: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "transform 0.2s",
+              mt: "2px",
+              transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+            }}
           >
             <svg
               width="10"
@@ -217,9 +246,21 @@ export default function NoteTreeItem({
             >
               <polyline points="9 18 15 12 9 6" />
             </svg>
-          </span>
+          </Box>
         ) : (
-          <span className="shrink-0 w-4 h-4 flex items-center justify-center mt-0.5 opacity-0">
+          <Box
+            as="span"
+            css={{
+              flexShrink: 0,
+              w: "16px",
+              h: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mt: "2px",
+              opacity: 0,
+            }}
+          >
             <svg
               width="10"
               height="10"
@@ -233,13 +274,13 @@ export default function NoteTreeItem({
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
             </svg>
-          </span>
+          </Box>
         )}
-        <div className="flex-1 min-w-0">
+        <Box css={{ flex: 1, minWidth: 0 }}>
           {isEditing ? (
-            <input
+            <Input
               ref={inputRef}
-              type="text"
+              variant="outline"
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
               onBlur={commitRename}
@@ -253,20 +294,48 @@ export default function NoteTreeItem({
               }}
               onClick={(e) => e.stopPropagation()}
               onDoubleClick={(e) => e.stopPropagation()}
-              className="w-full bg-transparent text-sm text-[var(--foreground)] outline-none border border-[var(--accent)] rounded px-1 py-0"
+              css={{
+                width: "100%",
+                bg: "transparent",
+                fontSize: "14px",
+                color: "fg",
+                borderColor: "accent",
+                borderRadius: "4px",
+                px: "4px",
+                py: 0,
+                outline: "none",
+                height: "auto",
+              }}
             />
           ) : (
-            <div className="truncate">
+            <Box
+              css={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
               {searchQuery ? highlightMatch(note.title, searchQuery) : note.title}
-            </div>
+            </Box>
           )}
           {snippet && !isEditing && (
-            <div className="text-xs text-[var(--text-muted)] truncate mt-0.5 leading-relaxed">
+            <Box
+              css={{
+                fontSize: "12px",
+                color: "fg.muted",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                mt: "2px",
+                lineHeight: "relaxed",
+              }}
+            >
               {highlightMatch(snippet, searchQuery)}
-            </div>
+            </Box>
           )}
-        </div>
-        <span
+        </Box>
+        <Box
+          as="span"
           role="button"
           tabIndex={0}
           onClick={(e) => {
@@ -276,34 +345,48 @@ export default function NoteTreeItem({
           onKeyDown={(e) => {
             if (e.key === "Enter") { e.stopPropagation(); setConfirmDelete(true); }
           }}
-          className={`shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-[var(--sidebar-hover)] text-[var(--text-muted)] hover:text-[var(--danger)] transition-all ${
-            isHovered ? "" : "invisible pointer-events-none"
-          }`}
           title={`Delete "${note.title}"`}
+          css={{
+            flexShrink: 0,
+            w: "24px",
+            h: "24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "4px",
+            color: "fg.muted",
+            transition: "all 0.2s",
+            visibility: isHovered ? "visible" : "hidden",
+            pointerEvents: isHovered ? "auto" : "none",
+            _hover: {
+              bg: "bg.muted",
+              color: "danger",
+            },
+          }}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
           </svg>
-        </span>
-      </button>
+        </Box>
+      </Box>
 
       {isFolder && isExpanded && (
-        <ul role="group" className="space-y-0.5">
+        <Box as="ul" role="group" css={{ "& > :not(:first-of-type)": { mt: "2px" } }}>
           {note.children.map((child) => (
-              <NoteTreeItem
-                  key={child.id}
-                  note={child}
-                  selectedId={selectedId}
-                  onSelect={onSelect}
-                  onToggle={onToggle}
-                  onMoveNote={onMoveNote}
-                  onRename={onRename}
-                  onDelete={onDelete}
-                  searchQuery={searchQuery}
-                  depth={depth + 1}
-                />
+            <NoteTreeItem
+              key={child.id}
+              note={child}
+              selectedId={selectedId}
+              onSelect={onSelect}
+              onToggle={onToggle}
+              onMoveNote={onMoveNote}
+              onRename={onRename}
+              onDelete={onDelete}
+              searchQuery={searchQuery}
+              depth={depth + 1}
+            />
           ))}
-        </ul>
+        </Box>
       )}
 
       <ConfirmDialog
@@ -322,6 +405,6 @@ export default function NoteTreeItem({
         }}
         onCancel={() => setConfirmDelete(false)}
       />
-    </li>
+    </Box>
   );
 }

@@ -10,6 +10,7 @@ import { ResizableImage } from "@/extensions/ResizableImage";
 import { type Note } from "@/types";
 import EditorToolbar from "./EditorToolbar";
 import { useEffect, useImperativeHandle, forwardRef, useRef } from "react";
+import { Box, Flex, Text, Input } from "@chakra-ui/react";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -64,8 +65,7 @@ const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(function RichEd
     content: note.content ?? "",
     editorProps: {
       attributes: {
-        class:
-          "prose prose-sm sm:prose-base max-w-none focus:outline-none",
+        class: "focus:outline-none",
       },
       handleDrop: (view, event) => {
         const files = event.dataTransfer?.files;
@@ -165,31 +165,53 @@ const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(function RichEd
   }));
 
   return (
-    <div className="flex flex-col h-full bg-[var(--editor-bg)]">
-      <EditorToolbar editor={editor} />
-      <div
-        className="flex-1 overflow-y-auto"
-        onDragOver={(e) => {
-          if (e.dataTransfer.types.includes("Files")) {
-            e.preventDefault();
-          }
-        }}
-      >
-        <div className="max-w-4xl px-8 py-6 sm:px-12 sm:py-8">
-          <input
-            type="text"
-            value={note.title}
-            onChange={(e) => onUpdateName(note.id, e.target.value)}
-            className="w-full bg-transparent text-[2.5rem] font-bold text-[var(--foreground)] outline-none border-none p-0 mb-1 tracking-tight"
-            placeholder="Untitled"
-          />
-          <p className="text-sm text-[var(--text-muted)] mb-6">
-            {note.lastUpdated ? formatDate(note.lastUpdated) : ""}
-          </p>
-          <EditorContent editor={editor} className="min-h-full" />
-        </div>
-      </div>
-    </div>
+    <Flex direction="column" h="full" css={{ bg: "bg.surface", color: "fg" }}>
+        <EditorToolbar editor={editor} />
+        <Box
+          flex={1}
+          overflowY="auto"
+          css={{
+            "&::-webkit-scrollbar": { width: "6px" },
+            "&::-webkit-scrollbar-thumb": { bg: "border.subtle", borderRadius: "3px" },
+            "&::-webkit-scrollbar-track": { bg: "transparent" },
+          }}
+          onDragOver={(e) => {
+            if (e.dataTransfer.types.includes("Files")) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <Box maxW="4xl" mx="auto" px={{ base: 4, sm: 6, md: 10 }} py={{ base: 4, sm: 6, md: 8 }}>
+            <Input
+              variant="subtle"
+              fontSize="xl"
+              fontWeight="bold"
+              letterSpacing="tight"
+              w="full"
+              mb={0.5}
+              type="text"
+              value={note.title}
+              onChange={(e) => onUpdateName(note.id, e.target.value)}
+              placeholder="Untitled"
+              css={{
+                color: "fg",
+                bg: "transparent",
+                border: "none",
+                borderRadius: 0,
+                px: 0,
+                _focus: { borderColor: "transparent", boxShadow: "none" },
+                _placeholder: { color: "fg.muted" },
+              }}
+            />
+            <Text fontSize="xs" css={{ color: "fg.muted" }} mb={5}>
+              {note.lastUpdated ? formatDate(note.lastUpdated) : ""}
+            </Text>
+            <Box minH="full">
+              <EditorContent editor={editor} />
+            </Box>
+          </Box>
+        </Box>
+    </Flex>
   );
 });
 

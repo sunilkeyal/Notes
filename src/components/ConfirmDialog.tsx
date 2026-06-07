@@ -1,6 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
+import { Box, HStack, Text, Button } from "@chakra-ui/react";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -24,38 +25,49 @@ export default function ConfirmDialog({
   if (!open) return null;
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay)] backdrop-blur-sm"
+    <Box
+      position="fixed"
+      inset="0"
+      zIndex="50"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      css={{ bg: "overlay", backdropFilter: "blur(4px)" }}
       onClick={onCancel}
     >
-      <div
-        className="bg-[var(--sidebar-bg)] border border-[var(--sidebar-border)] rounded-xl shadow-2xl w-[320px] p-6"
+      <Box
+        css={{ bg: "bg.subtle", border: "1px solid", borderColor: "border" }}
+        borderRadius="xl"
+        boxShadow="2xl"
+        w="320px"
+        p="6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-sm font-semibold text-[var(--foreground)] mb-2">
+        <Text fontSize="sm" fontWeight="semibold" css={{ color: "fg" }} mb="2">
           {title}
-        </h3>
-        <p className="text-sm text-[var(--text-secondary)] mb-5 leading-relaxed">
+        </Text>
+        <Text fontSize="sm" css={{ color: "fg.subtle" }} mb="5" lineHeight="relaxed">
           {message}
-        </p>
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
+        </Text>
+        <HStack justify="flex-end" gap="2">
+          <Button
+            variant="outline"
+            size="sm"
+            css={{ color: "fg.subtle", borderColor: "border", _hover: { bg: "bg.muted" } }}
             onClick={onCancel}
-            className="px-3 py-1.5 text-sm rounded-lg border border-[var(--sidebar-border)] text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)] transition-colors"
           >
             {cancelLabel}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            size="sm"
+            css={{ bg: "danger", color: "white", _hover: { bg: "danger.hover" } }}
             onClick={onConfirm}
-            className="px-3 py-1.5 text-sm rounded-lg bg-[var(--danger)] text-white hover:bg-[var(--danger-hover)] transition-colors"
           >
             {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>,
+          </Button>
+        </HStack>
+      </Box>
+    </Box>,
     document.body
   );
 }
