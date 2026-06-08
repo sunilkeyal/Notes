@@ -166,7 +166,6 @@ const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(function RichEd
 
   return (
     <Flex direction="column" h="full" css={{ bg: "bg.surface", color: "fg" }}>
-        <EditorToolbar editor={editor} />
         <Box
           flex={1}
           overflowY="auto"
@@ -181,36 +180,40 @@ const RichEditor = forwardRef<RichEditorHandle, RichEditorProps>(function RichEd
             }
           }}
         >
-          <Box maxW="4xl" px={{ base: 4, sm: 6, md: 10 }} py={{ base: 4, sm: 6, md: 8 }}>
-            <Input
-              variant="subtle"
-              fontSize="2xl"
-              fontWeight="semibold"
-              letterSpacing="tight"
-              w="full"
-              mb={0}
-              type="text"
-              value={note.title}
-              onChange={(e) => onUpdateName(note.id, e.target.value)}
-              placeholder="Untitled"
-              css={{
-                color: "fg",
-                bg: "transparent",
-                border: "none",
-                borderBottom: "1px solid",
-                borderBottomColor: "border.subtle",
-                borderRadius: 0,
-                px: 0,
-                pb: 0.5,
-                _focus: { borderColor: "transparent", boxShadow: "none", borderBottomColor: "border" },
-                _placeholder: { color: "fg.muted" },
-              }}
-            />
-            <Text fontSize="xs" css={{ color: "fg.muted" }} mt={-1} mb={5}>
-              {note.lastUpdated ? formatDate(note.lastUpdated) : ""}
-            </Text>
-            <Box minH="full">
-              <EditorContent editor={editor} />
+          <Box maxW="4xl" css={{ border: "1px solid #c4c4c4", borderRadius: "lg", bg: "bg.surface", overflow: "hidden" }}>
+            <EditorToolbar editor={editor} />
+            <Box px={{ base: 4, sm: 6, md: 10 }} py={{ base: 4, sm: 6, md: 8 }}>
+              <Input
+                variant="subtle"
+                fontSize="2xl"
+                fontWeight="semibold"
+                letterSpacing="tight"
+                w="full"
+                mb={0}
+                type="text"
+                value={note.title}
+                onChange={(e) => onUpdateName(note.id, e.target.value)}
+                placeholder="Untitled"
+                css={{
+                  color: "fg",
+                  bg: "transparent",
+                  border: "none",
+                  borderBottom: "1px solid",
+                  borderBottomColor: "border.subtle",
+                  borderRadius: 0,
+                  px: 0,
+                  pb: 0.5,
+                  _focus: { borderColor: "transparent", boxShadow: "none", borderBottomColor: "border" },
+                  _placeholder: { color: "fg.muted" },
+                }}
+              />
+              <Text fontSize="xs" css={{ color: "fg.muted" }} mt={-1} mb={2}>
+                {note.lastUpdated ? formatDate(note.lastUpdated) : ""}
+              </Text>
+              <Box css={{ borderBottom: "1px solid #a8a8a8" }} mb={5} />
+              <Box minH="full">
+                <EditorContent editor={editor} />
+              </Box>
             </Box>
           </Box>
         </Box>
